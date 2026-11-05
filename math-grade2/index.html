@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>جمع وطرح للصف الثاني</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700&family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one centred stage on matte black. Equation first, base-ten blocks beneath it, three large answer targets for touch, progress as a row of gold dashes. */
+:root {
+  --ink: #12100e;
+  --panel: #1b1814;
+  --line: #3a342b;
+  --ivory: #f2ead8;
+  --ivory-dim: #b4aa95;
+  --gold: #caa75e;
+  --rose: #d08a80;
+  --font-display: "Baloo Bhaijaan 2", "Readex Pro", Tahoma, sans-serif;
+  --font-body: "Readex Pro", Tahoma, "Segoe UI", sans-serif;
+  --u: clamp(7px, 1.3vw + 3px, 15px);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--ivory);
+  font-family: var(--font-body);
+  direction: rtl;
+  padding-block: clamp(16px, 3vw, 32px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 1100px; margin-inline: auto; display: grid; gap: clamp(16px, 2.5vw, 28px); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.top > * { min-width: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3.4vw, 36px); line-height: 1.2; margin: 0; text-wrap: balance; }
+.sub { color: var(--ivory-dim); font-size: 14px; line-height: 1.6; margin: 4px 0 0; }
+.progress-wrap { display: grid; gap: 8px; justify-items: end; }
+.progress { display: flex; gap: 6px; }
+.dash { width: clamp(16px, 3vw, 32px); height: 6px; border-radius: 3px; background: var(--line); }
+.dash.done { background: var(--gold); }
+.dash.now { background: var(--ivory); }
+.streak { color: var(--gold); font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+.feedback .star { width: 1.1em; height: 1.1em; vertical-align: -0.15em; margin-inline-start: 0.3em; fill: var(--gold); }
+
+.stage {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(18px, 3vw, 36px);
+  display: grid;
+  gap: clamp(14px, 2vw, 24px);
+  justify-items: center;
+  min-width: 0;
+}
+.eq {
+  direction: rtl;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(54px, 11vw, 128px);
+  line-height: 1.1;
+}
+.eq .op, .eq .q { color: var(--gold); }
+.eq .q { min-width: 0.7em; text-align: center; }
+
+.blocks {
+  direction: rtl;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(14px, 3vw, 36px);
+}
+.group { display: flex; direction: ltr; align-items: flex-end; gap: calc(var(--u) * 1.2); }
+.rods { display: flex; align-items: flex-end; gap: calc(var(--u) * 0.45); }
+.rod {
+  width: var(--u);
+  height: calc(var(--u) * 10);
+  border-radius: 2px;
+  background: repeating-linear-gradient(to bottom, var(--gold) 0 calc(var(--u) - 2px), transparent calc(var(--u) - 2px) var(--u));
+}
+.ones { display: grid; grid-template-columns: repeat(3, var(--u)); gap: 2px; align-content: end; }
+.one { width: var(--u); height: var(--u); background: var(--ivory); border-radius: 2px; }
+.op-sign { font-family: var(--font-display); font-weight: 700; font-size: calc(var(--u) * 3.2); color: var(--gold); align-self: center; line-height: 1; }
+
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; color: var(--ivory-dim); font-size: 14px; }
+.key { display: inline-flex; align-items: center; gap: 8px; }
+.k-rod { display: inline-block; width: 8px; height: 20px; border-radius: 2px; background: var(--gold); }
+.k-one { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--ivory); }
+
+.options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 2vw, 22px); width: 100%; max-width: 760px; }
+.opt {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(36px, 8vw, 76px);
+  min-height: clamp(84px, 15vw, 150px);
+  background: var(--ink);
+  color: var(--ivory);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: border-color 0.15s, transform 0.1s, background 0.15s;
+}
+@media (hover: hover) { .opt:not(:disabled):hover { border-color: var(--gold); } }
+.opt:not(:disabled):active { transform: scale(0.97); }
+.opt.correct { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.opt.correct::after { content: "\2713"; font-size: 0.45em; margin-inline-start: 0.3em; }
+.opt.wrong { border-color: var(--rose); color: var(--rose); opacity: 0.6; }
+.opt:disabled { cursor: default; }
+.opt:disabled:not(.correct):not(.wrong) { opacity: 0.45; }
+
+.feedback { min-height: 1.6em; font-family: var(--font-display); font-weight: 500; font-size: clamp(20px, 2.6vw, 28px); text-align: center; }
+.feedback.good { color: var(--gold); }
+.feedback.bad { color: var(--rose); }
+
+.next, .restart {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(20px, 2.6vw, 28px);
+  min-height: 60px;
+  padding: 12px 36px;
+  background: var(--gold);
+  color: var(--ink);
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.end { text-align: center; }
+.end h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 6vw, 60px); line-height: 1.2; margin: 0; text-wrap: balance; }
+.stars { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.star { width: clamp(28px, 5vw, 48px); height: auto; fill: var(--line); }
+.star.on { fill: var(--gold); }
+.end p { margin: 0; color: var(--ivory-dim); font-size: clamp(16px, 2vw, 20px); }
+
+.tools { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.ghost {
+  font-family: var(--font-body);
+  font-size: 15px;
+  min-height: 44px;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--ivory);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+@media (hover: hover) { .ghost:hover { border-color: var(--gold); } }
+
+.credit { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 24px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ivory-dim); font-size: 13px; }
+.credit .latin { letter-spacing: 0.22em; font-weight: 600; color: var(--gold); direction: ltr; }
+
+@keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes pop { 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: no-preference) {
+  .opt.wrong { animation: shake 0.35s; }
+  .opt.correct { animation: pop 0.35s; }
+  .feedback .star { animation: pop 0.5s; }
+}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+
+<main class="app" dir="rtl" lang="ar">
+  <header class="top">
+    <div>
+      <h1>جمع وطرح للصف الثاني</h1>
+      <p class="sub">اضغطوا على الإجابة الصحيحة. المكعبات تساعدكم على العدّ.</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress" id="progress" aria-hidden="true"></div>
+      <div class="sub" id="counter"></div>
+      <div class="streak" id="streak" hidden></div>
+    </div>
+  </header>
+
+  <section class="stage" id="quiz" aria-label="السؤال">
+    <div class="eq" id="eq" dir="rtl"></div>
+    <div class="blocks" id="blocks" dir="rtl"></div>
+    <div class="legend" id="legend">
+      <span class="key"><i class="k-rod"></i>عشرة (١٠ آحاد)</span>
+      <span class="key"><i class="k-one"></i>واحد</span>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+    <button type="button" class="next" id="next" hidden>السؤال التالي</button>
+  </section>
+
+  <section class="stage end" id="end" hidden>
+    <h2 id="endMsg"></h2>
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <p id="endScore"></p>
+    <button type="button" class="restart" id="restart">إعادة النشاط</button>
+  </section>
+
+  <div class="tools">
+    <button type="button" class="ghost" id="toggle" aria-pressed="false">إخفاء المكعبات</button>
+    <button type="button" class="ghost" id="sound" aria-pressed="true">الصوت: يعمل</button>
+    <button type="button" class="ghost" id="full">ملء الشاشة</button>
+  </div>
+
+  <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+
+  <footer class="credit">
+    <span>نموذج تجريبي من دروس Nexa التفاعلية · فكرتك تستحق أن تُرى</span>
+    <span class="latin">NEXA DIGITAL STUDIO</span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var DIG = "٠١٢٣٤٥٦٧٨٩";
+  function ar(n) { return String(n).replace(/\d/g, function (d) { return DIG[+d]; }); }
+  var Q = [
+    { a: 23, op: "+", b: 14, wrong: [36, 47] },
+    { a: 45, op: "-", b: 21, wrong: [26, 34] },
+    { a: 52, op: "+", b: 36, wrong: [86, 98] },
+    { a: 38, op: "+", b: 25, wrong: [53, 73] },
+    { a: 62, op: "-", b: 17, wrong: [55, 46] },
+    { a: 56, op: "+", b: 27, wrong: [73, 82] },
+    { a: 74, op: "-", b: 35, wrong: [41, 49] },
+    { a: 90, op: "-", b: 48, wrong: [52, 38] }
+  ];
+  var GOOD = ["ممتاز!", "أحسنت!", "رائع!", "مبدع!", "إجابة صحيحة!"];
+  var STAR_FB = '<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2.5 14.9,8.9 22,9.6 16.7,14.3 18.2,21.3 12,17.7 5.8,21.3 7.3,14.3 2,9.6 9.1,8.9"/></svg>';
+
+  /* Sound: tones are synthesized in the browser, so no audio files are needed. */
+  var actx = null, soundOn = true;
+  function audio() {
+    if (!soundOn) return null;
+    try {
+      if (!actx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        actx = new AC();
+      }
+      if (actx.state === "suspended") actx.resume();
+      return actx;
+    } catch (e) { return null; }
+  }
+  function tone(freq, at, dur, type, vol) {
+    var c = audio();
+    if (!c) return;
+    var o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at;
+    o.type = type || "triangle";
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  var SFX = {
+    tap: function () { tone(660, 0, 0.05, "sine", 0.08); },
+    good: function (streak) {
+      [523.25, 659.25, 783.99].forEach(function (f, k) { tone(f, k * 0.09, 0.22, "triangle", 0.2); });
+      if (streak >= 3) tone(1046.5, 0.3, 0.35, "sine", 0.16);
+    },
+    bad: function () { tone(246.94, 0, 0.18, "sine", 0.14); tone(196, 0.14, 0.28, "sine", 0.12); },
+    win: function () {
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach(function (f, k) { tone(f, k * 0.12, 0.4, "triangle", 0.2); });
+    }
+  };
+
+  /* Confetti: gold and ivory pieces on a canvas that ignores touches. */
+  var REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var COLORS = ["#caa75e", "#f2ead8", "#e6cb8f", "#a8843f"];
+  var parts = [], raf = 0;
+  function loop() {
+    var c = el.confetti, g = c.getContext("2d");
+    g.clearRect(0, 0, c.width, c.height);
+    parts = parts.filter(function (p) { return p.y < c.height + 20 && p.life < 140; });
+    parts.forEach(function (p) {
+      p.life++; p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      g.save();
+      g.translate(p.x, p.y); g.rotate(p.rot);
+      g.fillStyle = p.col;
+      g.globalAlpha = Math.max(0, 1 - p.life / 140);
+      g.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      g.restore();
+    });
+    if (parts.length) { raf = requestAnimationFrame(loop); }
+    else { raf = 0; g.clearRect(0, 0, c.width, c.height); }
+  }
+  function burst(n, ox, oy) {
+    if (REDUCED) return;
+    var c = el.confetti;
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    for (var k = 0; k < n; k++) {
+      var a = Math.random() * Math.PI * 2, s = 4 + Math.random() * 9;
+      parts.push({
+        x: ox * c.width, y: oy * c.height,
+        vx: Math.cos(a) * s, vy: Math.sin(a) * s - 6,
+        r: 4 + Math.random() * 6, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4,
+        col: COLORS[k % COLORS.length], life: 0
+      });
+    }
+    if (!raf) loop();
+  }
+  function drawStreak() {
+    if (streak >= 2) {
+      el.streak.hidden = false;
+      el.streak.textContent = "سلسلة ذهبية: " + ar(streak) + " متتالية";
+    } else {
+      el.streak.hidden = true;
+    }
+  }
+  function $(id) { return document.getElementById(id); }
+  var el = {
+    progress: $("progress"), counter: $("counter"), quiz: $("quiz"), eq: $("eq"),
+    blocks: $("blocks"), legend: $("legend"), options: $("options"), feedback: $("feedback"),
+    next: $("next"), end: $("end"), stars: $("stars"), endMsg: $("endMsg"),
+    endScore: $("endScore"), restart: $("restart"), toggle: $("toggle"), full: $("full"), sound: $("sound"), streak: $("streak"), confetti: $("confetti")
+  };
+  var i = 0, score = 0, tries = 0, streak = 0, done = false, hideBlocks = false, qEl = null;
+
+  function answerOf(q) { return q.op === "+" ? q.a + q.b : q.a - q.b; }
+  function shuffle(a) {
+    a = a.slice();
+    for (var k = a.length - 1; k > 0; k--) {
+      var j = Math.floor(Math.random() * (k + 1));
+      var t = a[k]; a[k] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function span(cls, txt) {
+    var s = document.createElement("span");
+    s.className = cls; s.textContent = txt;
+    return s;
+  }
+  function group(n) {
+    var g = document.createElement("div");
+    g.className = "group";
+    var t = Math.floor(n / 10), o = n % 10, k;
+    g.setAttribute("role", "img");
+    g.setAttribute("aria-label", ar(n) + " = " + ar(t) + " عشرات و" + ar(o) + " آحاد");
+    if (t > 0) {
+      var rods = document.createElement("div");
+      rods.className = "rods";
+      for (k = 0; k < t; k++) { var r = document.createElement("div"); r.className = "rod"; rods.appendChild(r); }
+      g.appendChild(rods);
+    }
+    if (o > 0) {
+      var ones = document.createElement("div");
+      ones.className = "ones";
+      for (k = 0; k < o; k++) { var d = document.createElement("div"); d.className = "one"; ones.appendChild(d); }
+      g.appendChild(ones);
+    }
+    return g;
+  }
+  function drawProgress() {
+    el.progress.textContent = "";
+    Q.forEach(function (_, k) {
+      var d = document.createElement("span");
+      var state = k < i || (k === i && done) ? " done" : k === i ? " now" : "";
+      d.className = "dash" + state;
+      el.progress.appendChild(d);
+    });
+  }
+  function applyBlocks() {
+    el.blocks.hidden = hideBlocks;
+    el.legend.hidden = hideBlocks;
+    el.toggle.textContent = hideBlocks ? "إظهار المكعبات" : "إخفاء المكعبات";
+    el.toggle.setAttribute("aria-pressed", hideBlocks ? "true" : "false");
+  }
+  function show() {
+    var q = Q[i], ans = answerOf(q);
+    tries = 0; done = false;
+    el.eq.textContent = "";
+    qEl = span("q", "؟");
+    el.eq.append(span("num", ar(q.a)), span("op", q.op === "+" ? "+" : "−"), span("num", ar(q.b)), span("op", "="), qEl);
+    el.blocks.textContent = "";
+    el.blocks.append(group(q.a), span("op-sign", q.op === "+" ? "+" : "−"), group(q.b));
+    el.options.textContent = "";
+    shuffle([ans].concat(q.wrong)).forEach(function (v) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "opt"; b.textContent = ar(v);
+      b.addEventListener("click", function () { pick(b, v, ans); });
+      el.options.appendChild(b);
+    });
+    el.feedback.textContent = ""; el.feedback.className = "feedback";
+    el.next.hidden = true;
+    el.counter.textContent = "السؤال " + ar(i + 1) + " من " + ar(Q.length);
+    drawProgress(); applyBlocks();
+  }
+  function pick(btn, v, ans) {
+    if (done) return;
+    if (v === ans) {
+      done = true;
+      var first = tries === 0;
+      if (first) { score++; streak++; } else { streak = 0; }
+      btn.classList.add("correct");
+      qEl.textContent = ar(ans);
+      Array.prototype.forEach.call(el.options.children, function (b) { b.disabled = true; });
+      el.feedback.textContent = GOOD[Math.floor(Math.random() * GOOD.length)];
+      if (first) el.feedback.insertAdjacentHTML("beforeend", STAR_FB);
+      SFX.good(streak);
+      var rc = btn.getBoundingClientRect();
+      burst(first ? 60 : 24, (rc.left + rc.width / 2) / window.innerWidth, (rc.top + rc.height / 2) / window.innerHeight);
+      drawStreak();
+      el.feedback.className = "feedback good";
+      el.next.textContent = i === Q.length - 1 ? "عرض النتيجة" : "السؤال التالي";
+      el.next.hidden = false;
+      el.next.focus({ preventScroll: true });
+      drawProgress();
+    } else {
+      tries++;
+      streak = 0; drawStreak(); SFX.bad();
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      el.feedback.textContent = "ليست هذه الإجابة. عدّوا المكعبات وجرّبوا مرة أخرى.";
+      el.feedback.className = "feedback bad";
+      if (hideBlocks) { hideBlocks = false; applyBlocks(); }
+    }
+  }
+  function finish() {
+    i = Q.length;
+    drawProgress();
+    el.counter.textContent = "انتهى النشاط";
+    el.quiz.hidden = true; el.end.hidden = false;
+    el.stars.innerHTML = "";
+    var starSvg = '<svg class="star %c" viewBox="0 0 24 24"><polygon points="12,2.5 14.9,8.9 22,9.6 16.7,14.3 18.2,21.3 12,17.7 5.8,21.3 7.3,14.3 2,9.6 9.1,8.9"/></svg>';
+    for (var k = 0; k < Q.length; k++) {
+      el.stars.insertAdjacentHTML("beforeend", starSvg.replace("%c", k < score ? "on" : ""));
+    }
+    el.endMsg.textContent = score >= 7 ? "ممتاز! أداء رائع" : score >= 4 ? "أحسنتم! جرّبوا مرة أخرى لرفع نتيجتكم" : "محاولة جيدة. لنراجع المكعبات ونعيد النشاط";
+    el.endScore.textContent = ar(score) + " من " + ar(Q.length) + " من أول محاولة";
+    SFX.win();
+    burst(score >= 4 ? 90 : 40, 0.5, 0.3);
+    if (score >= 4) {
+      setTimeout(function () { burst(70, 0.25, 0.4); }, 250);
+      setTimeout(function () { burst(70, 0.75, 0.4); }, 500);
+    }
+    el.restart.focus({ preventScroll: true });
+  }
+  el.next.addEventListener("click", function () {
+    SFX.tap();
+    i++;
+    if (i >= Q.length) finish(); else show();
+  });
+  el.restart.addEventListener("click", function () {
+    i = 0; score = 0; streak = 0; hideBlocks = false;
+    drawStreak();
+    el.end.hidden = true; el.quiz.hidden = false;
+    show();
+  });
+  el.toggle.addEventListener("click", function () { hideBlocks = !hideBlocks; applyBlocks(); });
+  el.sound.addEventListener("click", function () {
+    soundOn = !soundOn;
+    el.sound.textContent = soundOn ? "الصوت: يعمل" : "الصوت: متوقف";
+    el.sound.setAttribute("aria-pressed", soundOn ? "true" : "false");
+    if (soundOn) SFX.tap();
+  });
+  if (!document.fullscreenEnabled) el.full.hidden = true;
+  el.full.addEventListener("click", function () {
+    try {
+      if (document.fullscreenElement) { document.exitFullscreen(); }
+      else {
+        var p = document.documentElement.requestFullscreen();
+        if (p && p.catch) p.catch(function () {});
+      }
+    } catch (e) {}
+  });
+  show();
+})();
+</script>
+
+</body>
+</html>
